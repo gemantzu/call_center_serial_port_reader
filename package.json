@@ -1,0 +1,20 @@
+{
+  "name": "siemens_port_reader",
+  "version": "0.0.1",
+  "description": "siemens call center port reader for call history",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "gemantzu",
+  "license": "ISC",
+  "dependencies": {
+    "chokidar": "^1.5.1",
+    "request": "^2.72.0",
+    "serialport": "^3.1.2-beta2",
+    "utf8": "^2.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.9.2"
+  }
+}
