@@ -112,7 +112,7 @@ setInterval(function() {
 
 var fileName = function() {
   var date = new Date();
-  return date.getYear() + date.getMonth() + date.getDay() + date.getHours() + date.getMinutes + date.getSeconds();
+  return "./" + folder + "/" + date.getYear() + date.getMonth() + date.getDay() + date.getHours() + date.getMinutes + date.getSeconds();
 }
 
 port.on('data', function(data){
