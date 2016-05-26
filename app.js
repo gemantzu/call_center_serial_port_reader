@@ -90,9 +90,6 @@ var sendCallToApi = function(call) {
   req.end();
 }
 
-var dataOutputter = function(call) {
-}
-
 var asyncDataReader = function(path) {
   var data = fs.readFileSync(path, 'utf8');
   return data;
@@ -103,7 +100,6 @@ setInterval(function() {
     if(err) { return console.log(err); }
     files.forEach(function(file) {
       file = "./calls/" + file;
-      console.log(file);
       var recoveredCall = asyncDataReader(file);
       console.log(recoveredCall);
       if (recoveredCall) {
@@ -114,9 +110,16 @@ setInterval(function() {
   });
 }, 1000);
 
+var fileName = function() {
+  var date = new Date();
+  return date.getYear() + date.getMonth() + date.getDay() + date.getHours() + date.getMinutes + date.getSeconds();
+}
+
 port.on('data', function(data){
-  var file = folder + "/" + call["called_at"].split(' ').join('').split('-').join('').split(':').join('') + "_" + call["phone"] + '.txt';
-  fs.writeFile(file, JSON.stringify(call), function(err) {
+  // var call = createData(data);
+  // var file = folder + "/" + call["called_at"].split(' ').join('').split('-').join('').split(':').join('') + "_" + call["phone"] + '.txt';
+  var file = fileName();
+  fs.writeFile(file, data, function(err) {
     if (err) { return console.log(err); }
     console.log("Call saved in file");  
   });
