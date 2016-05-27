@@ -7,7 +7,7 @@ var folder = 'calls';
 
 var port = new SerialPort('\\\\.\\COM1', { 
   baudrate: 9600,
-  parser: serialport.parsers.raw
+  parser: serialport.parsers.readline("\n")
 }, true);
 
 var calculateSeconds = function(arrayOfTime) {
@@ -34,12 +34,13 @@ var formatDatetime = function(dateFromCallCenter) {
 }
 
 var createData = function(stringFromCallCenter) {
+	console.log(stringFromCallCenter);
   var tempData = utf8.encode(stringFromCallCenter);
   var tempArray = tempData.split(" ");
   var tempArray = tempArray.filter(function(e){ return e.replace(/(\r\n|\n|\r)/gm,"")});
-
   var called_at = formatDatetime(tempArray[0]);
-  var internal = tempArray[2] * 1;
+  var internal = tempArray[2].substring(0, 3) * 1;
+  var 
   var durationAndNumber = tempArray[3];
   var duration = calculateSeconds(durationAndNumber.substring(0, 8).split(':'));
   var phone = durationAndNumber.substring(8); 
@@ -62,10 +63,10 @@ var createData = function(stringFromCallCenter) {
 // var newCall = createData("13.05.1615:34:49  7   160     00:04:3217776944244414                     8 2                          9 6        ");
 
 var sendCallToApi = function(call) {
+	console.log(call);
   var options = {
-    host: 'localhost',
-    url: 'http://localhost',
-    port: '3000',
+    host: '172.17.32.200',
+    //url: 'http://172.17.32.200',
     path: '/calls',
     method: 'POST',
     headers: {
@@ -86,7 +87,7 @@ var sendCallToApi = function(call) {
   req.on('error', function(error) {
     console.log('Error: ' + error);
   });
-  req.write(JSON.stringify(call));
+  req.write("call:{" + JSON.stringify(call) + "}");
   req.end();
 }
 
@@ -95,20 +96,21 @@ var asyncDataReader = function(path) {
   return data;
 }
 
-setInterval(function() {
-  fs.readdir(folder, function(err, files) {
-    if(err) { return console.log(err); }
-    files.forEach(function(file) {
-      file = "./calls/" + file;
-      var recoveredCall = asyncDataReader(file);
-      console.log(recoveredCall);
-      if (recoveredCall) {
-        var resp = sendCallToApi(recoveredCall);
-        fs.unlinkSync(file);
-      }
-    });
-  });
-}, 1000);
+//setInterval(function() {
+//  fs.readdir(folder, function(err, files) {
+//    if(err) { return console.log(err); }
+//    files.forEach(function(file) {
+//      file = "./calls/" + file;
+//      var recoveredCall = asyncDataReader(file);
+//      console.log(recoveredCall);
+//      if (recoveredCall) {
+//        var resp = sendCallToApi(recoveredCall);
+//		console.log(resp);
+//        fs.unlinkSync(file);
+//      }
+//    });
+//  });
+//}, 1000);
 
 var fileName = function() {
   var date = new Date();
@@ -116,11 +118,16 @@ var fileName = function() {
 }
 
 port.on('data', function(data){
-  // var call = createData(data);
-  // var file = folder + "/" + call["called_at"].split(' ').join('').split('-').join('').split(':').join('') + "_" + call["phone"] + '.txt';
-  var file = fileName();
-  fs.writeFile(file, data, function(err) {
-    if (err) { return console.log(err); }
-    console.log("Call saved in file");  
-  });
+  if(data.trim() !== ''){
+	var call = createData(data);
+	console.log(call);
+	var file = folder + "/" + call["called_at"].split(' ').join('').split('-').join('').split(':').join('') + "_" + call["phone"] + '.txt';
+	console.log(file);
+	//var file = fileName();
+	//fs.writeFile(file, JSON.stringify(call), function(err) {
+	fs.writeFile(file, data, function(err) {
+		if (err) { return console.log(err); }
+		console.log("Call saved in file");  
+	});
+  }
 });
