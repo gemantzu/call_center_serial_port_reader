@@ -9,6 +9,7 @@
   "author": "gemantzu",
   "license": "ISC",
   "dependencies": {
+    "chokidar": "^1.5.1",
     "serialport": "^3.1.2-beta2",
     "utf8": "^2.1.1"
   }
