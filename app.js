@@ -34,21 +34,18 @@ var formatDatetime = function(dateFromCallCenter) {
 }
 
 var createData = function(stringFromCallCenter) {
-	console.log(stringFromCallCenter);
   var tempData = utf8.encode(stringFromCallCenter);
-  var tempArray = tempData.split(" ");
-  var tempArray = tempArray.filter(function(e){ return e.replace(/(\r\n|\n|\r)/gm,"")});
-  var called_at = formatDatetime(tempArray[0]);
-  var internal = tempArray[2].substring(0, 3) * 1;
-  var 
-  var durationAndNumber = tempArray[3];
-  var duration = calculateSeconds(durationAndNumber.substring(0, 8).split(':'));
-  var phone = durationAndNumber.substring(8); 
+  var called_at = formatDatetime(tempData.substring(0, 16));
+  var internal = tempData.substring(22, 3) * 1; 
+  var duration = calculateSeconds(tempData.substring(30, 8).split(':'));
+  var phone = tempData.substring(38, 14);
 
   if(phone.substring(0,4) === "1777") {
-    phone = phone.substring(4)
+    phone = phone.substring(4);
+  } else {
+    phone = phone.substring(0, 10);
   }
-  var call_type = tempArray[5] * 1;
+  var call_type = tempData.substring(75, 1);
 
   var d = {
     phone: phone,
@@ -63,7 +60,6 @@ var createData = function(stringFromCallCenter) {
 // var newCall = createData("13.05.1615:34:49  7   160     00:04:3217776944244414                     8 2                          9 6        ");
 
 var sendCallToApi = function(call) {
-	console.log(call);
   var options = {
     host: '172.17.32.200',
     //url: 'http://172.17.32.200',
@@ -119,15 +115,13 @@ var fileName = function() {
 
 port.on('data', function(data){
   if(data.trim() !== ''){
-	var call = createData(data);
-	console.log(call);
-	var file = folder + "/" + call["called_at"].split(' ').join('').split('-').join('').split(':').join('') + "_" + call["phone"] + '.txt';
-	console.log(file);
-	//var file = fileName();
-	//fs.writeFile(file, JSON.stringify(call), function(err) {
-	fs.writeFile(file, data, function(err) {
-		if (err) { return console.log(err); }
-		console.log("Call saved in file");  
-	});
+    var call = createData(data);
+    console.log(call);
+    var file = folder + "/" + call["called_at"].split(' ').join('').split('-').join('').split(':').join('') + "_" + call["phone"] + '.txt';
+    console.log(file);
+    fs.writeFile(file, JSON.stringify(call) + "\n" + data, function(err) {
+      if (err) { return console.log(err); }
+      console.log("Call saved in file");  
+    });
   }
 });
