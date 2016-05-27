@@ -18,34 +18,42 @@ var calculateSeconds = function(arrayOfTime) {
 };
 
 var formatDatetime = function(dateFromCallCenter) {
-  var date = dateFromCallCenter.substring(0, 8).split('.');
-  var time = dateFromCallCenter.substring(8);
+  var date = dateFromCallCenter.slice(0, 8);
+  var time = dateFromCallCenter.slice(8, 16).join('');
   var datetime = [
     '20',
-    date[2],
+    date.slice(6, 8).join(''),
     '-',
-    date[1],
+    date.slice(3, 5).join(''),
     '-',
-    date[0],
+    date.slice(0, 2).join(''),
     ' ',
     time,
   ];
     return datetime.join('');
 }
 
+var filterTime = function(value) {
+  return value != ':';
+}
+
 var createData = function(stringFromCallCenter) {
-  var tempData = utf8.encode(stringFromCallCenter);
-  var called_at = formatDatetime(tempData.substring(0, 16));
-  var internal = tempData.substring(22, 3) * 1; 
-  var duration = calculateSeconds(tempData.substring(30, 8).split(':'));
-  var phone = tempData.substring(38, 14);
+  //var tempData = utf8.encode(stringFromCallCenter);
+  var tempData = stringFromCallCenter.split('');
+  //var called_at = formatDatetime(tempData.substring(0, 16));
+  var called_at = formatDatetime(tempData.slice(0, 16));
+  //var internal = tempData.substring(23, 3); 
+  var internal = tempData.slice(22, 25).join('') * 1;
+  //var duration = calculateSeconds(tempData.substring(30, 8).split(':'));
+  var duration = calculateSeconds(tempData.slice(30, 38).filter(filterTime));
+  var phone = tempData.slice(38, 52).join('');
 
   if(phone.substring(0,4) === "1777") {
     phone = phone.substring(4);
   } else {
     phone = phone.substring(0, 10);
   }
-  var call_type = tempData.substring(75, 1);
+  var call_type = tempData.slice(75, 76).join('') * 1;
 
   var d = {
     phone: phone,
@@ -92,21 +100,21 @@ var asyncDataReader = function(path) {
   return data;
 }
 
-//setInterval(function() {
-//  fs.readdir(folder, function(err, files) {
-//    if(err) { return console.log(err); }
-//    files.forEach(function(file) {
-//      file = "./calls/" + file;
-//      var recoveredCall = asyncDataReader(file);
-//      console.log(recoveredCall);
-//      if (recoveredCall) {
-//        var resp = sendCallToApi(recoveredCall);
-//		console.log(resp);
-//        fs.unlinkSync(file);
-//      }
-//    });
-//  });
-//}, 1000);
+setInterval(function() {
+  fs.readdir(folder, function(err, files) {
+    if(err) { return console.log(err); }
+    files.forEach(function(file) {
+      file = "./calls/" + file;
+      var recoveredCall = asyncDataReader(file);
+      console.log(recoveredCall);
+      if (recoveredCall) {
+        var resp = sendCallToApi(recoveredCall);
+	console.log(resp);
+        fs.unlinkSync(file);
+      }
+    });
+  });
+}, 1000);
 
 var fileName = function() {
   var date = new Date();
@@ -119,7 +127,7 @@ port.on('data', function(data){
     console.log(call);
     var file = folder + "/" + call["called_at"].split(' ').join('').split('-').join('').split(':').join('') + "_" + call["phone"] + '.txt';
     console.log(file);
-    fs.writeFile(file, JSON.stringify(call) + "\n" + data, function(err) {
+    fs.writeFile(file, JSON.stringify(call), function(err) {
       if (err) { return console.log(err); }
       console.log("Call saved in file");  
     });
