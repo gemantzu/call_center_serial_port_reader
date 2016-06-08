@@ -62,8 +62,6 @@ var createData = function(stringFromCallCenter) {
   return d;
 };
 
-// var newCall = createData("13.05.1615:34:49  7   160     00:04:3217776944244414                     8 2                          9 6        ");
-
 var sendCallToApi = function(call) {
   var options = {
     host: '172.17.32.200',
@@ -71,8 +69,7 @@ var sendCallToApi = function(call) {
     path: '/calls',
     method: 'POST',
     headers: {
-      "Content-Type": "application/json"//,
-      //"Content-Length": Buffer.byteLength(JSON.stringify(call))
+      "Content-Type": "application/json"
     }
   };
   var req = http.request(options, function(res) {
@@ -96,22 +93,6 @@ var asyncDataReader = function(path) {
   var data = fs.readFile(path, 'utf8');
   return data;
 }
-
-// setInterval(function() {
-//   fs.readdir(folder, function(err, files) {
-//     if(err) { return console.log(err); }
-//     files.forEach(function(file) {
-//       file = "./calls/" + file;
-//       var recoveredCall = asyncDataReader(file);
-//       console.log(recoveredCall);
-//       if (recoveredCall) {
-//         var resp = sendCallToApi(recoveredCall);
-// 	console.log(resp);
-//         fs.unlinkSync(file);
-//       }
-//     });
-//   });
-// }, 1000);
 
 var watcher = chokidar.watch('./calls/', {
   ignored: /[\/\\]\./,
