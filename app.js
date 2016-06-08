@@ -39,14 +39,10 @@ var filterTime = function(value) {
 }
 
 var createData = function(stringFromCallCenter) {
-  //var tempData = utf8.encode(stringFromCallCenter);
-  var tempData = stringFromCallCenter.split('');
-  //var called_at = formatDatetime(tempData.substring(0, 16));
+  var tempData = utf8.encode(stringFromCallCenter).split('');
   var called_at = formatDatetime(tempData.slice(0, 16));
-  //var internal = tempData.substring(23, 3); 
   var internal = tempData.slice(22, 25).join('') * 1;
-  //var duration = calculateSeconds(tempData.substring(30, 8).split(':'));
-  var duration = calculateSeconds(tempData.slice(30, 38).filter(filterTime));
+  var duration = calculateSeconds(tempData.slice(30, 38).join('').split(':'));
   var phone = tempData.slice(38, 52).join('');
 
   if(phone.substring(0,4) === "1777") {
@@ -75,8 +71,8 @@ var sendCallToApi = function(call) {
     path: '/calls',
     method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "Content-Length": Buffer.byteLength(JSON.stringify(call))
+      "Content-Type": "application/json"//,
+      //"Content-Length": Buffer.byteLength(JSON.stringify(call))
     }
   };
   var req = http.request(options, function(res) {
@@ -92,7 +88,7 @@ var sendCallToApi = function(call) {
   req.on('error', function(error) {
     console.log('Error: ' + error);
   });
-  req.write('call:{' + call + '}');
+  req.write(call);
   req.end();
 }
 
@@ -125,8 +121,7 @@ var watcher = chokidar.watch('./calls/', {
 watcher.on('add', function(path) {
   fs.readFile(path, function(err, data) {
     if(err) { return console.log(err) };
-    var res = sendCallToApi(data);     
-    console.log(res);
+    var res = sendCallToApi(data);
     fs.unlink(path);
   });
 });
@@ -134,11 +129,8 @@ watcher.on('add', function(path) {
 port.on('data', function(data){
   if(data.trim() !== ''){
     var call = createData(data);
-    console.log(call);
     var file = folder + "/" + call["called_at"].split(' ').join('').split('-').join('').split(':').join('') + "_" + call["phone"] + '.txt';
-    console.log(file);
-    // fs.writeFile(file, JSON.stringify(call), function(err) {
-    fs.writeFile(file, call, function(err) {
+    fs.writeFile(file, JSON.stringify(call), function(err) {
       if (err) { return console.log(err); }
       console.log("Call saved in file");  
     });
